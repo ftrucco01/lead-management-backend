@@ -1,12 +1,16 @@
 <?php
 namespace App\Services;
 
+use App\Services\NotificationService;
+
 class LeadService {
     private $db;
     private const VALID_SOURCES = ['facebook', 'google', 'linkedin', 'manual'];
+    private $notificationService;
 
-    public function __construct(\PDO $db) {
+    public function __construct(\PDO $db, NotificationService $notificationService) {
         $this->db = $db;
+        $this->notificationService = $notificationService;
     }
 
     /**
@@ -29,6 +33,15 @@ class LeadService {
         try {
             // Insert the lead into the database
             $leadId = $this->insertLead($data);
+
+            //notify to slack
+            $this->notificationService->notifyExternalSystem([
+                'lead_id' => $leadId,
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'source' => $data['source']
+            ]);
 
             // Return a success response with the inserted lead ID
             return [
