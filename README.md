@@ -162,31 +162,6 @@ Connected to DB: lead_management
   ```bash
   curl http://localhost:8000/leads
   ```
-
----
-
-#### ✅ **GET /leads/{id}** - Retrieve a single lead by ID.
-- **Description:** Fetches the details of a specific lead by its unique ID.
-- **URL Parameter:**
-  - `id` (integer) - Lead ID.
-- **Response:**
-  ```json
-  {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john.doe@example.com",
-    "phone": "1234567890",
-    "source": "google",
-    "created_at": "2024-02-21T14:30:00"
-  }
-  ```
-- **Errors:**
-  - `404 Not Found` - If the lead with the given ID does not exist.
-- **Example CURL Command:**
-  ```bash
-  curl http://localhost:8000/leads/1
-  ```
-
 ---
 
 ## 📝 **Scripts**

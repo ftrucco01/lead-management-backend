@@ -28,7 +28,7 @@ return function (ContainerBuilder $containerBuilder) {
         },
 
         // Database connection
-        'db' => function (ContainerInterface $c) {
+        PDO::class => function (ContainerInterface $c) {
             $settings = $c->get(SettingsInterface::class)->get('db');
 
             $dsn = "{$settings['driver']}:host={$settings['host']};dbname={$settings['database']};port={$settings['port']}";
@@ -38,6 +38,7 @@ return function (ContainerBuilder $containerBuilder) {
                 $settings['username'],
                 $settings['password']
             );
-        }
+        },
+
     ]);
 };
