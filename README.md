@@ -11,6 +11,7 @@ A simple **Lead Management System** built with the **Slim Framework** (PHP) and 
 - Error handling and logging with Monolog.
 - Dependency Injection (DI) with PHP-DI.
 - Slim Framework 4 structure.
+- **Automatic notifications to external APIs (e.g., Slack) when a new lead is created.**
 
 ---
 
@@ -51,7 +52,7 @@ composer install
    ```bash
    cp .env.example .env
    ```
-2. Update the `.env` file with your database credentials:
+2. Update the `.env` file with your database credentials and external API URL:
    ```ini
    DB_DRIVER=mysql
    DB_HOST=localhost
@@ -59,6 +60,8 @@ composer install
    DB_DATABASE=lead_management
    DB_USERNAME=root
    DB_PASSWORD=123456
+
+   EXTERNAL_API_URL=https://mock-api.com/marketing-webhooks
    ```
 
 ### 4. **Set Up the Database**
@@ -162,6 +165,79 @@ Connected to DB: lead_management
   ```bash
   curl http://localhost:8000/leads
   ```
+
+---
+
+## 📢 **Notifications**
+
+When a new lead is created, the system automatically sends a **notification to an external API** with the lead details.
+
+### 🔔 **How Notifications Work:**
+- Upon successful lead creation via the `/leads` endpoint, the backend triggers a POST request to the configured external API.
+- The notification includes details such as `lead_id`, `name`, `email`, `phone`, and `source`.
+- If the external API fails (responding with `400` or `500` status), the system:
+  - Retries the request **3 times** with a **2-second delay** between attempts.
+  - Logs the error in `logs/app.log` if all attempts fail.
+
+### ⚙️ **Configure the External API URL**
+1. Add the API URL to your `.env` file:
+   ```ini
+   EXTERNAL_API_URL=https://mock-api.com/marketing-webhooks
+   ```
+2. Update your `.env.example`:
+   ```ini
+   EXTERNAL_API_URL=
+   ```
+
+---
+
+### 📝 **Notification Payload Example**
+```json
+{
+  "lead_id": 123,
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "phone": "123456789",
+  "source": "google"
+}
+```
+
+### 🚀 **Slack Notification Example**
+If Slack is used as the external API, the received message will be formatted like this:
+
+> 🚀 *New Lead Created!*  
+> | Lead ID: 123 | Name: John Doe | Email: john.doe@example.com | Phone: 123456789 | Source: Google |
+
+---
+
+### 🛠️ **Test the Notification**
+```bash
+curl -X POST http://localhost:8000/leads \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "Test User",
+  "email": "test.user@example.com",
+  "phone": "987654321",
+  "source": "linkedin"
+}'
+```
+✅ **Expected result:**
+- Lead is saved in the database.
+- Notification is sent to the external API.
+- If successful, you’ll see:
+```json
+{
+  "status": "success",
+  "message": "Lead created successfully",
+  "lead_id": "3",
+  "notification_sent": true
+}
+```
+
+✅ **Slack message:**
+> 🚀 *New Lead Created!*  
+> | Lead ID: 3 | Name: Test User | Email: test.user@example.com | Phone: 987654321 | Source: Linkedin |
+
 ---
 
 ## 📝 **Scripts**
@@ -178,23 +254,6 @@ Connected to DB: lead_management
 
 ---
 
-## 🧪 **Testing**
-Use tools like **Postman** or **curl** to test API endpoints.
-
-Example to test `/db-test`:
-```bash
-curl http://localhost:8000/db-test
-```
-
-Example to test creating a lead:
-```bash
-curl -X POST http://localhost:8000/leads \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Test User", "email": "test.user@example.com", "source": "facebook"}'
-```
-
----
-
 ## 🛡️ **Troubleshooting**
 - **Database connection issues:**
   - Verify your `.env` settings.
@@ -206,6 +265,23 @@ curl -X POST http://localhost:8000/leads \
 - **External API failures:**
   - Check the configured external API URL.
   - Review logs in `logs/app.log` for detailed error messages.
+  - Verify network connectivity and correct webhook URL.
 - **Port conflicts:**
   - Change the port if `localhost:8000` is busy.
 
+---
+
+## 🗒️ **Logs**
+- All error logs and notification failures are stored in:
+  ```plaintext
+  logs/app.log
+  ```
+- Example log on failed notification:
+  ```plaintext
+  [2024-02-22 17:15:00] slim-app.ERROR: Failed to notify external system after 3 attempts.
+  ```
+- Ensure the `logs/` directory exists and is writable:
+  ```bash
+  mkdir -p logs
+  chmod 777 logs
+  ```
