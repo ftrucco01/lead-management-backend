@@ -23,18 +23,14 @@ class LeadService {
         // Validate input before DB interaction
         $validationErrors = $this->validateInput($data);
         if (!empty($validationErrors)) {
-            return [
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validationErrors,
-            ];
+            throw new \Exception('Validation failed: ' . json_encode($validationErrors), 400);
         }
                 
         try {
             // Insert the lead into the database
             $leadId = $this->insertLead($data);
 
-            //notify to slack
+            // Notify to slack
             $this->notificationService->notifyExternalSystem([
                 'lead_id' => $leadId,
                 'name' => $data['name'],
@@ -50,11 +46,7 @@ class LeadService {
                 'lead_id' => $leadId,
             ];
         } catch (\PDOException $e) {
-            return [
-                'status' => 'error',
-                'message' => 'Database error',
-                'details' => $e->getMessage(),
-            ];
+            throw new \Exception('Database error: ' . $e->getMessage(), 500);
         }
     }
 

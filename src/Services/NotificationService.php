@@ -59,7 +59,7 @@ class NotificationService {
     private function postRequest(array $leadData): int {
         $ch = curl_init($this->externalApiUrl);
     
-        // ✅ Generate a friendly message with pipe separators
+        // Generate a friendly message with pipe separators
         $formattedMessage = sprintf(
             ":rocket: *New Lead Created!*\n Lead ID: %s | Name: %s | Email: %s | Phone: %s | Source: %s",
             $leadData['lead_id'],
@@ -69,7 +69,7 @@ class NotificationService {
             ucfirst($leadData['source'])
         );
     
-        // ✅ Prepare the JSON payload as a string
+        // Prepare the JSON payload as a string
         $jsonPayload = json_encode(['text' => $formattedMessage]);
     
         if ($jsonPayload === false) {
