@@ -1,18 +1,37 @@
-version: '3.7'
+version: '3.8'
 
 volumes:
-    logs:
-        driver: local
+  logs:
+    driver: local
+  db_data:
 
 services:
-    slim:
-        image: php:7-alpine
-        working_dir: /var/www
-        command: php -S 0.0.0.0:8080 -t public
-        environment:
-            docker: "true"
-        ports:
-            - "8080:8080"
-        volumes:
-            - .:/var/www
-            - logs:/var/www/logs
+  app:
+    build: .
+    container_name: lead_management_app
+    working_dir: /var/www/html
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - logs:/var/www/html/logs
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=leads_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+
+  db:
+    image: mysql:8.0
+    container_name: leads_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: leads_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
