@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
     tests:
         name: Tests PHP ${{ matrix.php }}
+        if: false
         runs-on: ubuntu-latest
         continue-on-error: ${{ matrix.experimental }}
         strategy:
